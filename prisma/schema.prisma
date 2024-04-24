@@ -1,0 +1,130 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// Модель данных для пользователей 
+model User {
+  id               Int        @id @default(autoincrement())
+  email            String     @unique
+  password         String
+  name             String?
+  avatarUrl        String?
+  role             Role       @relation(fields: [roleId], references: [id])
+  roleId           Int // Foreign key to Role model
+  class            String? // Добавляем поле для указания класса пользователя
+  dateOfBirth      DateTime?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  bio              String?
+  location         String?
+  posts            Post[]
+  comments         Comment[]
+  createdSchedules Schedule[] @relation("ScheduleCreatedByUser")
+  // Убираем обратное отношение для поля schedules
+  // schedules        Schedule[] @relation("TeacherSchedules", fields: [teacherId], references: [id])
+}
+
+model Role {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  users User[]
+}
+
+model Post {
+  id        Int       @id @default(autoincrement())
+  content   String
+  author    User      @relation(fields: [authorId], references: [id])
+  authorId  Int
+  comments  Comment[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Comment {
+  id         Int      @id @default(autoincrement())
+  content    String
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int
+  post       Post     @relation(fields: [postId], references: [id])
+  postId     Int
+  schedule   Schedule @relation(fields: [scheduleId], references: [id])
+  scheduleId Int
+}
+
+model Subject {
+  id        Int              @id @default(autoincrement())
+  name      String
+  teachers  TeacherSubject[]
+  classes   ClassSubject[]
+  schedules Schedule[]
+}
+
+model TeacherSubject {
+  subject   Subject @relation(fields: [subjectId], references: [id])
+  subjectId Int
+  teacher   Teacher @relation(fields: [teacherId], references: [id])
+  teacherId Int
+
+  @@id([subjectId, teacherId])
+}
+
+model ClassSubject {
+  subject   Subject @relation(fields: [subjectId], references: [id])
+  subjectId Int
+  class     Class   @relation(fields: [classId], references: [id])
+  classId   Int
+
+  @@id([subjectId, classId])
+}
+
+model Teacher {
+  id        Int              @id @default(autoincrement())
+  fullName  String
+  subjects  TeacherSubject[]
+  // Добавляем обратное отношение для поля schedules
+  schedules Schedule[]       @relation("TeacherSchedules")
+}
+
+model Class {
+  id       Int            @id @default(autoincrement())
+  name     String
+  subjects ClassSubject[]
+  Schedule Schedule[]
+}
+
+model Schedule {
+  id           Int        @id @default(autoincrement())
+  classId      Int
+  date         String
+  teacherId    Int
+  teacher      Teacher    @relation("TeacherSchedules", fields: [teacherId], references: [id])
+  lessonTimeId Int
+  lessonTime   LessonTime @relation(fields: [lessonTimeId], references: [id])
+  subjectId    Int
+  subject      Subject    @relation(fields: [subjectId], references: [id])
+  createdBy    User       @relation("ScheduleCreatedByUser", fields: [createdById], references: [id])
+  class        Class      @relation(fields: [classId], references: [id])
+  createdById  Int
+  comments     Comment[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+model LessonTime {
+  id           Int        @id @default(autoincrement())
+  lessonNumber Int
+  startTime    String
+  endTime      String
+  schedules    Schedule[]
+}
