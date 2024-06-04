@@ -9,6 +9,7 @@ services:
     environment:
       DATABASE_URL: "mysql://user:userpass@db:3306/mydatabase"
 
+
   db:
     image: mysql/mysql-server:latest
     ports:

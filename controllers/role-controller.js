@@ -2,25 +2,48 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 const RoleController = {
-  createRole: async (req, res) => {
+    createRole: async (req, res) => {
+        const { name } = req.body;
+    
+        if (!name) {
+          return res.status(400).json({ error: 'Name field is required' });
+        }
+     
+        try {
+          const role = await prisma.role.create({
+            data: {
+              name,
+            },
+          });
+    
+          res.json(role);
+        } catch (error) {
+          console.error("Error in createRole:", error);
+          res.status(500).json({ error: 'There was an error creating the role' });
+        }
+      },
+      getAllRoles: async (req, res) => {
+        try {
+          const roles = await prisma.role.findMany();
+          res.json(roles);
+        } catch (error) {
+          console.error("Error in getAllRoles:", error);
+          res.status(500).json({ error: 'There was an error fetching roles' });
+        }
+      },
+      getRoleById: async (req, res) => {
     try {
-        // Данные о ролях для заполнения
-        const roles = [
-            { name: 'Ученик' },
-            { name: 'Учитель' },
-            { name: 'Заместитель Директора' },
-            { name: 'Родитель' }
-        ];
-
-        // Создаем роли в базе данных
-        const createdRoles = await Promise.all(roles.map(role => prisma.role.create({ data: role })));
-
-        res.json({ message: 'Roles created successfully', roles: createdRoles });
+      const { id } = req.params;
+      const role = await prisma.role.findUnique({ where: { id: parseInt(id) } });
+      if (!role) {
+        return res.status(404).json({ error: 'Role not found' });
+      }
+      res.json(role);
     } catch (error) {
-        console.error('Error creating roles', error);
-        res.status(500).json({ error: 'Internal server error' });
+      console.error("Error in getRoleById:", error);
+      res.status(500).json({ error: 'There was an error fetching the role' });
     }
-}
+  }
 };
   
 module.exports = RoleController;

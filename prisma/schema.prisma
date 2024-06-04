@@ -21,8 +21,8 @@ model User {
   name             String?
   avatarUrl        String?
   role             Role       @relation(fields: [roleId], references: [id])
-  roleId           Int // Foreign key to Role model
-  class            String? // Добавляем поле для указания класса пользователя
+  roleId           Int 
+  class            String? 
   dateOfBirth      DateTime?
   createdAt        DateTime   @default(now())
   updatedAt        DateTime   @updatedAt
@@ -31,8 +31,6 @@ model User {
   posts            Post[]
   comments         Comment[]
   createdSchedules Schedule[] @relation("ScheduleCreatedByUser")
-  // Убираем обратное отношение для поля schedules
-  // schedules        Schedule[] @relation("TeacherSchedules", fields: [teacherId], references: [id])
 }
 
 model Role {
@@ -92,7 +90,6 @@ model Teacher {
   id        Int              @id @default(autoincrement())
   fullName  String
   subjects  TeacherSubject[]
-  // Добавляем обратное отношение для поля schedules
   schedules Schedule[]       @relation("TeacherSchedules")
 }
 
@@ -128,3 +125,8 @@ model LessonTime {
   endTime      String
   schedules    Schedule[]
 }
+
+
+
+
+

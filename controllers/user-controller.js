@@ -96,12 +96,12 @@ const UserController = {
             // Generate token
             const token = jwt.sign({ userId: user.id }, process.env.SECRET_KEY);
     
-            res.json({ token });
+            res.json({ token, role: user.role }); // Include the role in the response
         } catch (error) {
             console.log('Login error', error);
             res.status(500).json({ error: 'Internal server error' });
         }
-    },
+    }, 
     getUserById: async (req, res) => {
         const userId = parseInt(req.params.id); // Получаем идентификатор пользователя из параметров запроса
     
@@ -165,7 +165,33 @@ const UserController = {
             console.log('Error in current', error);
             res.status(500).json({ error: 'Internal server error' });
         }
-    }
+    },
+    deleteUser: async (req, res) => {
+        const userId = parseInt(req.params.id);
+    
+        try {
+            // Удаление пользователя с использованием метода delete Prisma
+            await prisma.user.delete({
+                where: { id: userId }
+            });
+            res.status(200).json({ message: 'User deleted successfully' });
+        } catch (error) {
+            console.error('Error deleting user:', error);
+            res.status(500).json({ error: 'Internal server error' });
+        }
+    },
+    getAllUsers: async (req, res) => {
+        try {
+            const users = await prisma.user.findMany({
+                include: { role: true } // Включаем информацию о роли пользователя
+            });
+            res.json(users);
+        } catch (error) {
+            console.error('Error in getAllUsers', error);
+            res.status(500).json({ error: 'Internal server error' });
+        }
+    },
+    
 }
 
 module.exports = UserController;
